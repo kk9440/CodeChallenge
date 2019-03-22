@@ -15,7 +15,16 @@ namespace CodeChallengeV2.Services
         /// <returns></returns>
         public Task<List<Node>> FindCritialGateways(NetworkGraph graph)
         {
-            return Task.FromResult(Enumerable.Empty<Node>().ToList());
+            var devDict = new Dictionary<String, List<String>>();
+
+            List<String> devices = graph.Graphs.FirstOrDefault().Nodes.Where(x => x.Type == "Device").Select(x => x.Id).ToList();
+
+            devices.ForEach(dev => devDict[dev] = new List<string>());
+            graph.Graphs.FirstOrDefault().Edges.Where(x => x.Relation == "is_connected_to").ToList().ForEach(y => devDict[y.Source].Add(y.Target));
+
+            List<String> criticalGateways = devDict.Where( x => x.Value.Count == 1).Select( y => y.Value.First()).ToList(); 
+
+            return Task.FromResult(graph.Graphs.FirstOrDefault().Nodes.Where(x => x.Type == "Gateway" && criticalGateways.Contains(x.Id)).ToList());
         }
     }
 }
